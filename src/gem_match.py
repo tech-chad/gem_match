@@ -16,7 +16,19 @@ RED = (255, 0, 0)
 
 
 class Score:
-    pass
+    def __init__(self):
+        self.score = 0
+        self.bonus = 0
+
+    def add_score(self):
+        self.score += 10 + self.bonus * 5
+        self.bonus += 1
+
+    def get_score(self):
+        return self.score
+
+    def reset_bonus(self):
+        self.bonus = 0
 
 
 class Images:
@@ -157,10 +169,11 @@ class GameBoard:
                     break
 
     def remove_matches(self) -> bool:
-        remove_list = []
+        h_remove_list = []
+        v_remove_list = []
         for y in range(8):
             for x in range(7):
-                if self.game_board[y][x] == 0:
+                if self.game_board[y][x] == 0 or (x, y) in h_remove_list:
                     continue
                 temp_list = []
                 g = self.game_board[y][x]
@@ -171,17 +184,18 @@ class GameBoard:
                         g_count += 1
                         temp_list.append((x2, y))
                         if x2 == 7 and g_count >= 3:
-                            remove_list += temp_list
-                            # game_score.add_score()
+                            h_remove_list += temp_list
+                            self.game_score.add_score()
+                            break
                     elif g_count >= 3:
-                        remove_list += temp_list
-                        # game_score.add_score()
+                        h_remove_list += temp_list
+                        self.game_score.add_score()
                         break
                     else:
                         break
         for x in range(8):
             for y in range(7):
-                if self.game_board[y][x] == 0:
+                if self.game_board[y][x] == 0 or (x, y) in v_remove_list:
                     continue
                 temp_list = []
                 g = self.game_board[y][x]
@@ -192,14 +206,16 @@ class GameBoard:
                         g_count += 1
                         temp_list.append((x, y2))
                         if y2 == 7 and g_count >= 3:
-                            remove_list += temp_list
-                            # game_score.add_score()
+                            v_remove_list += temp_list
+                            self.game_score.add_score()
+                            break
                     elif g_count >= 3:
-                        remove_list += temp_list
-                        # game_score.add_score()
+                        v_remove_list += temp_list
+                        self.game_score.add_score()
                         break
                     else:
                         break
+        remove_list = set(h_remove_list + v_remove_list)
         if len(remove_list) == 0:
             return False
         else:
@@ -227,6 +243,7 @@ class Display:
         self.game_score = game_score
         self.game_board = game_board
         self.font_70 = pygame.font.SysFont("comicsans", 70, bold=True)
+        self.font_44 = pygame.font.SysFont("comicsans", 44)
         self.images = Images()
         self.selected_cell_1 = ()
         self.selected_cell_2 = ()
@@ -273,6 +290,9 @@ class Display:
                     col = 527
                 gem = gb[y][x]
                 self.win.blit(self.images.get_gem_image(gem), (col, row))
+        text = f"Score: {self.game_score.get_score()}"
+        score_text = self.font_44.render(text, True, WHITE)
+        self.win.blit(score_text, (5, 610))
         pygame.display.update()
 
     def reset_display(self):
@@ -319,6 +339,9 @@ class Display:
                 gem = gb[y][x]
                 self.win.blit(self.images.get_gem_image(gem), (col, row))
         self._highlight_selected_cells()
+        text = f"Score: {self.game_score.get_score()}"
+        score_text = self.font_44.render(text, True, WHITE)
+        self.win.blit(score_text, (5, 610))
         pygame.display.update()
 
     def _highlight_selected_cells(self):
@@ -507,6 +530,7 @@ def main_game(win: pygame.Surface) -> None:
                             for event2 in pygame.event.get():
                                 if event2.type == pygame.MOUSEBUTTONDOWN:
                                     pass
+                            game_score.reset_bonus()
                             if not game_board.are_there_valid_moves():
                                 play = False
                                 game_over = True
