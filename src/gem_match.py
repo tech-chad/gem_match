@@ -2,9 +2,13 @@
 import random
 from time import sleep
 
+import importlib.resources
+import images as img
+
 from typing import Tuple
 
 import pygame
+
 
 SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 650
@@ -33,7 +37,8 @@ class Score:
 
 class Images:
     def __init__(self):
-        self.bg = pygame.image.load("images/background.jpeg")
+        image_path = importlib.resources.open_binary(img, "background.jpeg")
+        self.bg = pygame.image.load(image_path)
         self.gem_images = []
         self._load_gem_images()
 
@@ -44,14 +49,22 @@ class Images:
         return self.gem_images[gem_number - 1]
 
     def _load_gem_images(self):
-        gem1 = pygame.image.load("images/gem1.png")
-        gem2 = pygame.image.load("images/gem2.png")
-        gem3 = pygame.image.load("images/gem3.png")
-        gem4 = pygame.image.load("images/gem4.png")
-        gem5 = pygame.image.load("images/gem5.png")
-        gem6 = pygame.image.load("images/gem6.png")
-        gem7 = pygame.image.load("images/gem7.png")
-        gem8 = pygame.image.load("images/gem8.png")
+        path1 = importlib.resources.open_binary(img, "gem1.png")
+        path2 = importlib.resources.open_binary(img, "gem2.png")
+        path3 = importlib.resources.open_binary(img, "gem3.png")
+        path4 = importlib.resources.open_binary(img, "gem4.png")
+        path5 = importlib.resources.open_binary(img, "gem5.png")
+        path6 = importlib.resources.open_binary(img, "gem6.png")
+        path7 = importlib.resources.open_binary(img, "gem7.png")
+        path8 = importlib.resources.open_binary(img, "gem8.png")
+        gem1 = pygame.image.load(path1)
+        gem2 = pygame.image.load(path2)
+        gem3 = pygame.image.load(path3)
+        gem4 = pygame.image.load(path4)
+        gem5 = pygame.image.load(path5)
+        gem6 = pygame.image.load(path6)
+        gem7 = pygame.image.load(path7)
+        gem8 = pygame.image.load(path8)
         self.gem_images = [gem1, gem2, gem3, gem4, gem5, gem6, gem7, gem8]
 
 
