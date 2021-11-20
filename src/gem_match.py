@@ -68,8 +68,6 @@ class Images:
         self.gem_images = [gem1, gem2, gem3, gem4, gem5, gem6, gem7, gem8]
 
 
-
-
 class GameBoard:
     def __init__(self, start_level: int, game_score):
         self.level = start_level
@@ -264,43 +262,12 @@ class Display:
     def _display(self, gb: list):
         self.win.fill(color=BG_COLOR)
         self.win.blit(self.images.background(), (0, 0))
-        row = col = 0
         for y in range(len(gb)):
             for x in range(len(gb[y])):
                 if gb[y][x] == 0:
                     continue
-                if y == 0:
-                    row = 2
-                elif y == 1:
-                    row = 77
-                elif y == 2:
-                    row = 152
-                elif y == 3:
-                    row = 227
-                elif y == 4:
-                    row = 302
-                elif y == 5:
-                    row = 377
-                elif y == 6:
-                    row = 452
-                elif y == 7:
-                    row = 527
-                if x == 0:
-                    col = 2
-                elif x == 1:
-                    col = 77
-                elif x == 2:
-                    col = 152
-                elif x == 3:
-                    col = 227
-                elif x == 4:
-                    col = 302
-                elif x == 5:
-                    col = 377
-                elif x == 6:
-                    col = 452
-                elif x == 7:
-                    col = 527
+                row = get_grid(y)
+                col = get_grid(x)
                 gem = gb[y][x]
                 self.win.blit(self.images.get_gem_image(gem), (col, row))
         text = f"Score: {self.game_score.get_score()}"
@@ -312,43 +279,13 @@ class Display:
         self.win.fill(color=BG_COLOR)
         self.win.blit(self.images.background(), (0, 0))
         gb = self.game_board.get_game_board()
-        row = col = 0
         for y in range(8):
             for x in range(8):
                 if gb[y][x] == 0:
                     continue
-                if y == 0:
-                    row = 2
-                elif y == 1:
-                    row = 77
-                elif y == 2:
-                    row = 152
-                elif y == 3:
-                    row = 227
-                elif y == 4:
-                    row = 302
-                elif y == 5:
-                    row = 377
-                elif y == 6:
-                    row = 452
-                elif y == 7:
-                    row = 527
-                if x == 0:
-                    col = 2
-                elif x == 1:
-                    col = 77
-                elif x == 2:
-                    col = 152
-                elif x == 3:
-                    col = 227
-                elif x == 4:
-                    col = 302
-                elif x == 5:
-                    col = 377
-                elif x == 6:
-                    col = 452
-                elif x == 7:
-                    col = 527
+                row = get_grid(y)
+                col = get_grid(x)
+
                 gem = gb[y][x]
                 self.win.blit(self.images.get_gem_image(gem), (col, row))
         self._highlight_selected_cells()
@@ -358,8 +295,6 @@ class Display:
         pygame.display.update()
 
     def _highlight_selected_cells(self):
-        # grid_x = self.selected_cell_1[0]
-        # grid_y = self.selected_cell_1[1]
         for cell in [self.selected_cell_1, self.selected_cell_2]:
             if cell == ():
                 continue
@@ -452,6 +387,27 @@ class Display:
         pygame.display.update()
 
 
+def get_grid(a: int) -> int:
+    if a == 0:
+        return 2
+    elif a == 1:
+        return 77
+    elif a == 2:
+        return 152
+    elif a == 3:
+        return 227
+    elif a == 4:
+        return 302
+    elif a == 5:
+        return 377
+    elif a == 6:
+        return 452
+    elif a == 7:
+        return 527
+    else:
+        return 0
+
+
 def get_grid_location(mouse_x: int, mouse_y: int) -> Tuple[int, int]:
     # returns the game_board x,y location
     col = row = -1
@@ -502,8 +458,6 @@ def check_if_adjacent(x1: int, y1: int, x2: int, y2: int) -> bool:
 
 
 def main_game(win: pygame.Surface) -> None:
-    # clock = pygame.time.Clock()
-    # clock.tick(50)
     game_score = Score()
     game_board = GameBoard(1, game_score)
     display = Display(win, game_score, game_board)
@@ -569,8 +523,7 @@ def main_game(win: pygame.Surface) -> None:
 
 
 def welcome_screen(win: pygame.Surface) -> bool:
-    # return True - Play
-    # return False - Quit
+    # return True - Play and False - Quit
     font_50 = pygame.font.SysFont("comicsans", 50)
     font_30 = pygame.font.SysFont("comicsans", 30, False)
     welcome_text = font_50.render("Welcome to Gem Match", True, LIGHT_PURPLE)
@@ -585,6 +538,7 @@ def welcome_screen(win: pygame.Surface) -> bool:
                 return False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 return True
+
 
 def main() -> None:
     pygame.init()
