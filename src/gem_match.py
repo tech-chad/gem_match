@@ -20,19 +20,60 @@ RED = (255, 0, 0)
 
 
 class Score:
-    def __init__(self):
+    def __init__(self, game_level):
         self.score = 0
         self.bonus = 0
+        self.game_level = game_level
+        self.level_score = 0
 
     def add_score(self):
-        self.score += 10 + self.bonus * 5
+        # True if level up else False
+        self.score += 10 + self.bonus * 5 + self.game_level.point_modifier
+        self.level_score += 10 + self.bonus * 5
         self.bonus += 1
+        if self.level_score >= self.game_level.score_next_level:
+            self.game_level.increase_level()
+            self.level_score = 0
 
     def get_score(self):
         return self.score
 
     def reset_bonus(self):
         self.bonus = 0
+
+
+class Levels:
+    def __init__(self):
+        self.level = 1
+        # self.max_level = 20  # not set
+        self.number_of_gems = 7
+        self.max_number_of_gems = 15
+        self.point_modifier = 0
+        self.score_next_level = 300
+        self.num_gems_remove = 2
+        self.new_level = False
+
+    def increase_level(self) -> None:
+        self.level += 1
+        if self.level % 2 != 0 and self.number_of_gems < self.max_number_of_gems:
+            self.number_of_gems += 1
+        self.point_modifier += 10
+        self.score_next_level *= self.level
+        self.num_gems_remove += 1
+        self.new_level = True
+
+    def reset_level(self) -> None:
+        self.level = 1
+        self.number_of_gems = 7
+        self.point_modifier = 0
+        self.num_gems_remove = 2
+
+    def moved_to_new_level(self) -> bool:
+        if self.new_level:
+            self.new_level = False
+            return True
+        else:
+            return False
 
 
 class Images:
@@ -57,6 +98,14 @@ class Images:
         path6 = importlib.resources.open_binary(img, "gem6.png")
         path7 = importlib.resources.open_binary(img, "gem7.png")
         path8 = importlib.resources.open_binary(img, "gem8.png")
+        path9 = importlib.resources.open_binary(img, "gem9.png")
+        path10 = importlib.resources.open_binary(img, "gem10.png")
+        path11 = importlib.resources.open_binary(img, "gem11.png")
+        path12 = importlib.resources.open_binary(img, "gem12.png")
+        path13 = importlib.resources.open_binary(img, "gem13.png")
+        path14 = importlib.resources.open_binary(img, "gem14.png")
+        path15 = importlib.resources.open_binary(img, "gem15.png")
+
         gem1 = pygame.image.load(path1)
         gem2 = pygame.image.load(path2)
         gem3 = pygame.image.load(path3)
@@ -65,14 +114,23 @@ class Images:
         gem6 = pygame.image.load(path6)
         gem7 = pygame.image.load(path7)
         gem8 = pygame.image.load(path8)
-        self.gem_images = [gem1, gem2, gem3, gem4, gem5, gem6, gem7, gem8]
+        gem9 = pygame.image.load(path9)
+        gem10 = pygame.image.load(path10)
+        gem11 = pygame.image.load(path11)
+        gem12 = pygame.image.load(path12)
+        gem13 = pygame.image.load(path13)
+        gem14 = pygame.image.load(path14)
+        gem15 = pygame.image.load(path15)
+
+        self.gem_images = [gem1, gem2, gem3, gem4, gem5, gem6, gem7, gem8,
+                           gem9, gem10, gem11, gem12, gem13, gem14, gem15]
 
 
 class GameBoard:
-    def __init__(self, start_level: int, game_score):
+    def __init__(self, start_level: int, game_score, game_level):
         self.level = start_level
         self.game_score = game_score
-        self.number_of_gems = 7
+        self.game_level = game_level
         self.game_board = [[0 for _ in range(8)] for _ in range(8)]
         self._init_game_board()
 
@@ -80,7 +138,7 @@ class GameBoard:
         return self.game_board
 
     def add_random_gem(self, x: int, y: int):
-        self.game_board[y][x] = random.randint(1, self.number_of_gems)
+        self.game_board[y][x] = random.randint(1, self.game_level.number_of_gems)
 
     def get_single_gem(self, x: int, y: int) -> int:
         return self.game_board[y][x]
@@ -153,7 +211,7 @@ class GameBoard:
         for y in range(8):
             for x in range(8):
                 while True:
-                    gem = random.randint(1, self.number_of_gems)
+                    gem = random.randint(1, self.game_level.number_of_gems)
                     # right
                     if x <= 6 and self.game_board[y][x + 1] == gem:
                         if x <= 5 and self.game_board[y][x + 2] == gem:
@@ -178,6 +236,17 @@ class GameBoard:
                             continue
                     self.game_board[y][x] = gem
                     break
+
+    def remove_random_gems(self):
+        random_list = []
+        for _ in range(self.game_level.num_gems_remove):
+            while True:
+                loc = (random.randint(0, 7), random.randint(0, 7))
+                if loc not in random_list:
+                    random_list.append(loc)
+                    break
+        for loc in random_list:
+            self.game_board[loc[1]][loc[0]] = 0
 
     def remove_matches(self) -> bool:
         h_remove_list = []
@@ -249,12 +318,14 @@ class GameBoard:
 
 
 class Display:
-    def __init__(self, win: pygame.Surface, game_score, game_board):
+    def __init__(self, win: pygame.Surface, game_score, game_board, game_level):
         self.win = win
         self.game_score = game_score
         self.game_board = game_board
+        self.game_level = game_level
         self.font_70 = pygame.font.SysFont("comicsans", 70, bold=True)
         self.font_44 = pygame.font.SysFont("comicsans", 44)
+        self.font_24 = pygame.font.SysFont("comicsans", 24)
         self.images = Images()
         self.selected_cell_1 = ()
         self.selected_cell_2 = ()
@@ -292,7 +363,21 @@ class Display:
         text = f"Score: {self.game_score.get_score()}"
         score_text = self.font_44.render(text, True, WHITE)
         self.win.blit(score_text, (5, 610))
+        self.level_bar()
         pygame.display.update()
+
+    def level_bar(self):
+        start_x = int(SCREEN_WIDTH / 2)
+        start_y = 610
+        empty = pygame.rect.Rect((start_x, start_y, int(SCREEN_WIDTH / 2), 30))
+        pygame.draw.rect(self.win, (180, 180, 180), empty)
+        score = self.game_score.level_score / self.game_level.score_next_level
+        filled = pygame.rect.Rect((start_x, start_y, int(SCREEN_WIDTH / 2) * score, 30))
+        level_txt = self.font_24.render(f"Level {self.game_level.level}", True, WHITE)
+        pygame.draw.rect(self.win, (0, 50, 200), filled)
+        txt_x = start_x + int(start_x / 2) - int(level_txt.get_width() / 2)
+        txt_y = start_y + int(level_txt.get_height() / 2)
+        self.win.blit(level_txt, (txt_x, txt_y))
 
     def _highlight_selected_cells(self):
         for cell in [self.selected_cell_1, self.selected_cell_2]:
@@ -493,9 +578,10 @@ def quit_confirm() -> bool:
 
 
 def main_game(win: pygame.Surface) -> None:
-    game_score = Score()
-    game_board = GameBoard(1, game_score)
-    display = Display(win, game_score, game_board)
+    game_level = Levels()
+    game_score = Score(game_level)
+    game_board = GameBoard(1, game_score, game_level)
+    display = Display(win, game_score, game_board, game_level)
     display.display_full_fill_2()
     first_selected = (-1, -1)
     play = True
@@ -534,6 +620,13 @@ def main_game(win: pygame.Surface) -> None:
                             while game_board.remove_matches():
                                 display.fill_in_game_board()
                                 sleep(0.1)
+                            if game_level.moved_to_new_level():
+                                game_board.remove_random_gems()
+                                sleep(0.2)
+                                display.fill_in_game_board()
+                                while game_board.remove_matches():
+                                    display.fill_in_game_board()
+                                    sleep(0.1)
                             for event2 in pygame.event.get():
                                 if event2.type == pygame.MOUSEBUTTONDOWN:
                                     pass
