@@ -72,6 +72,7 @@ class Levels:
         self.number_of_gems = 7
         self.point_modifier = 0
         self.num_gems_remove = 2
+        self.score_next_level = 300
 
     def moved_to_new_level(self) -> bool:
         if self.new_level:
