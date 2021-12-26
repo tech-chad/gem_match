@@ -41,6 +41,11 @@ class Score:
     def reset_bonus(self):
         self.bonus = 0
 
+    def reset_score(self) -> None:
+        self.score = 0
+        self.bonus = 0
+        self.level_score = 0
+
 
 class Levels:
     def __init__(self):
@@ -136,6 +141,10 @@ class GameBoard:
 
     def get_game_board(self) -> list:
         return self.game_board
+
+    def reset_game_board(self) -> None:
+        self.game_board = [[0 for _ in range(8)] for _ in range(8)]
+        self._init_game_board()
 
     def add_random_gem(self, x: int, y: int):
         self.game_board[y][x] = random.randint(1, self.game_level.number_of_gems)
@@ -467,8 +476,8 @@ class Display:
     def show_game_over(self):
         text1 = self.font_70.render("No more valid moves", True, RED)
         text2 = self.font_70.render("Game Over", True, RED)
-        self.win.blit(text2, (150, 200))
-        self.win.blit(text1, (22, 275))
+        self.win.blit(text2, (150, 125))
+        self.win.blit(text1, (22, 200))
         pygame.display.update()
 
 
@@ -577,6 +586,41 @@ def quit_confirm() -> bool:
                     return False
 
 
+def play_again():
+    win = pygame.display.get_surface()
+    size = (int(SCREEN_WIDTH / 2) - 200, int(SCREEN_HEIGHT / 2), 400, 200)
+    font_30 = pygame.font.SysFont("comicsans", 30, False)
+    font_50 = pygame.font.SysFont("comicsans", 50)
+    message = font_50.render("Play Again?", True, LIGHT_PURPLE)
+    yes = font_30.render("YES", True, LIGHT_PURPLE)
+    no = font_30.render("NO", True, LIGHT_PURPLE)
+    button1 = pygame.rect.Rect((size[0] + 50, size[1] + 100, 75, 50))
+    button2 = pygame.rect.Rect((size[0] + size[2] - 125, size[1] + 100, 75, 50))
+    pygame.draw.rect(win, (175, 175, 175), size)
+    message_pos = (int(SCREEN_WIDTH / 2) - int(message.get_width() / 2), size[1] + 20)
+    win.blit(message, message_pos)
+    pygame.draw.rect(win, WHITE, button1)
+    pygame.draw.rect(win, WHITE, button2)
+    yes_pos_x = (button1.x + int(button1.width / 2) - int(yes.get_width() / 2))
+    yes_pos_y = (button1.y + int(button1.height / 2) - int(yes.get_height() / 2))
+    win.blit(yes, (yes_pos_x, yes_pos_y))
+    no_pos_x = (button2.x + int(button2.width / 2) - int(no.get_width() / 2))
+    no_pos_y = (button2.y + int(button2.height / 2) - int(no.get_height() / 2))
+    win.blit(no, (no_pos_x, no_pos_y))
+    pygame.display.update()
+    run = True
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return True
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if button1.collidepoint(mouse_x, mouse_y):
+                    return True
+                elif button2.collidepoint(mouse_x, mouse_y):
+                    return False
+
+
 def main_game(win: pygame.Surface) -> None:
     game_level = Levels()
     game_score = Score(game_level)
@@ -585,7 +629,6 @@ def main_game(win: pygame.Surface) -> None:
     display.display_full_fill_2()
     first_selected = (-1, -1)
     play = True
-    game_over = False
     while play:
         display.reset_display()
         for event in pygame.event.get():
@@ -632,8 +675,15 @@ def main_game(win: pygame.Surface) -> None:
                                     pass
                             game_score.reset_bonus()
                             if not game_board.are_there_valid_moves():
-                                play = False
-                                game_over = True
+                                display.show_game_over()
+                                sleep(0.3)
+                                if play_again():
+                                    game_level.reset_level()
+                                    game_board.reset_game_board()
+                                    game_score.reset_score()
+                                    display.display_full_fill_2()
+                                else:
+                                    play = False
                         else:
                             game_board.flip_cells(*first_selected, loc_x, loc_y)
                             display.reset_display()
@@ -646,13 +696,6 @@ def main_game(win: pygame.Surface) -> None:
                     else:
                         first_selected = (loc_x, loc_y)
                         display.set_selected_cell(loc_x, loc_y, 1)
-    if game_over:
-        display.show_game_over()
-        run = True
-        while run:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
 
 
 def welcome_screen(win: pygame.Surface) -> bool:
