@@ -11,7 +11,7 @@ python 3.7 +
 ### To Play:
 - clone repository
 - cd into gem_match
-- make and active virtualvenv (python3.7 +)
+- make and activate virtualvenv (python3.7 +)
 - pip install -r requirements.txt
 - python3 src/gem_match.py
 
@@ -22,6 +22,6 @@ python 3.7 +
 
 ### Screenshots:
 
-![screenshot](https://i.fluffy.cc/fmq4PNvJpLmpVZPzPv5hrgClmqWfWh6v.png)
+![screenshot](https://i.fluffy.cc/78bD6kdTxlCrK5cFF4LBZlqzZcGkRCMN.png)
 
-![screenshot](https://i.fluffy.cc/LnBPvWs1tpxFxVp1CxtbZgrKGhdVpvnm.png)
+![screenshot](https://i.fluffy.cc/kGH9Nhd8JtWCl2FmW0JF37r5QFvMFXC2.png)
