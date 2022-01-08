@@ -16,7 +16,9 @@ LIGHT_PURPLE = (130, 30, 255)
 BG_COLOR = (40, 40, 40)
 WHITE = (255, 255, 255)
 SELECTED_CELL_COLOR = (255, 200, 20)
+HINT_CELL_COLOR = (0, 255, 90)
 RED = (255, 0, 0)
+TIME_FOR_HINT = 6000
 
 
 class Score:
@@ -326,6 +328,49 @@ class GameBoard:
                     return True
         return False
 
+    def get_hint(self) -> Tuple[int, int]:
+        for x in range(8):
+            for y in range(8):
+                if x >= 1 and self.check_if_valid_hint(x, y, x - 1, y):
+                    return x, y
+                elif x <= 6 and self.check_if_valid_hint(x, y, x + 1, y):
+                    return x, y
+                elif y >= 1 and self.check_if_valid_hint(x, y, x, y - 1):
+                    return x, y
+                elif y <= 6 and self.check_if_valid_hint(x, y, x, y + 1):
+                    return x, y
+
+    def check_if_valid_hint(self, x1: int, y1: int, x2: int, y2: int) -> bool:
+        if self.game_board[y1][x1] == self.game_board[y2][x2]:
+            return False
+        self.game_board[y1][x1], self.game_board[y2][x2] = \
+            self.game_board[y2][x2], self.game_board[y1][x1]
+        item_2 = self.game_board[y2][x2]
+        result = False
+
+        if x2 <= 6 and self.game_board[y2][x2 + 1] == item_2:
+            if x2 <= 5 and self.game_board[y2][x2 + 2] == item_2:
+                result = True
+            if x2 >= 1 and self.game_board[y2][x2 - 1] == item_2:
+                result = True
+        # left
+        if x2 >= 1 and self.game_board[y2][x2 - 1] == item_2:
+            if x2 >= 2 and self.game_board[y2][x2 - 2] == item_2:
+                result = True
+        # down
+        if y2 <= 6 and self.game_board[y2 + 1][x2] == item_2:
+            if y2 <= 5 and self.game_board[y2 + 2][x2] == item_2:
+                result = True
+            if y2 >= 1 and self.game_board[y2 - 1][x2] == item_2:
+                result = True
+        # up
+        if y2 >= 1 and self.game_board[y2 - 1][x2] == item_2:
+            if y2 >= 2 and self.game_board[y2 - 2][x2] == item_2:
+                result = True
+        self.game_board[y1][x1], self.game_board[y2][x2] = \
+            self.game_board[y2][x2], self.game_board[y1][x1]
+        return result
+
 
 class Display:
     def __init__(self, win: pygame.Surface, game_score, game_board, game_level):
@@ -339,6 +384,8 @@ class Display:
         self.images = Images()
         self.selected_cell_1 = ()
         self.selected_cell_2 = ()
+        self.display_hint = False
+        self.hint = (0, 0)
 
     def _display(self, gb: list):
         self.win.fill(color=BG_COLOR)
@@ -374,6 +421,8 @@ class Display:
         score_text = self.font_44.render(text, True, WHITE)
         self.win.blit(score_text, (5, 610))
         self.level_bar()
+        if self.display_hint:
+            self.display_hint_on_screen()
         pygame.display.update()
 
     def level_bar(self):
@@ -388,6 +437,47 @@ class Display:
         txt_x = start_x + int(start_x / 2) - int(level_txt.get_width() / 2)
         txt_y = start_y + int(level_txt.get_height() / 2)
         self.win.blit(level_txt, (txt_x, txt_y))
+
+    def display_hint_on_screen(self) -> None:
+        grid_x, grid_y = self.hint
+        if grid_x == 0:
+            x = 0
+        elif grid_x == 1:
+            x = 75
+        elif grid_x == 2:
+            x = 150
+        elif grid_x == 3:
+            x = 225
+        elif grid_x == 4:
+            x = 300
+        elif grid_x == 5:
+            x = 375
+        elif grid_x == 6:
+            x = 450
+        elif grid_x == 7:
+            x = 525
+        else:
+            x = -100
+        if grid_y == 0:
+            y = 0
+        elif grid_y == 1:
+            y = 75
+        elif grid_y == 2:
+            y = 150
+        elif grid_y == 3:
+            y = 225
+        elif grid_y == 4:
+            y = 300
+        elif grid_y == 5:
+            y = 375
+        elif grid_y == 6:
+            y = 450
+        elif grid_y == 7:
+            y = 525
+        else:
+            y = -100
+        pygame.draw.rect(self.win, HINT_CELL_COLOR, (x, y, 75, 75), width=5)
+        pygame.display.update()
 
     def _highlight_selected_cells(self):
         for cell in [self.selected_cell_1, self.selected_cell_2]:
@@ -629,6 +719,7 @@ def main_game(win: pygame.Surface) -> None:
     display = Display(win, game_score, game_board, game_level)
     display.display_full_fill_2()
     first_selected = (-1, -1)
+    pygame.time.set_timer(1, TIME_FOR_HINT)
     play = True
     while play:
         display.reset_display()
@@ -636,12 +727,17 @@ def main_game(win: pygame.Surface) -> None:
             if event.type == pygame.QUIT:
                 if quit_confirm():
                     play = False
+            if event.type == 1:
+                display.display_hint = True
+                display.hint = game_board.get_hint()
             keys = pygame.key.get_pressed()
             if keys[pygame.K_q]:
                 if quit_confirm():
                     play = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
+                display.display_hint = False
+                pygame.time.set_timer(1, 0)
                 if mouse_y >= 600:
                     pass
                 elif first_selected == (-1, -1):
@@ -685,6 +781,7 @@ def main_game(win: pygame.Surface) -> None:
                                     display.display_full_fill_2()
                                 else:
                                     play = False
+                            pygame.time.set_timer(1, TIME_FOR_HINT)
                         else:
                             game_board.flip_cells(*first_selected, loc_x, loc_y)
                             display.reset_display()
@@ -692,6 +789,7 @@ def main_game(win: pygame.Surface) -> None:
                             game_board.flip_cells(*first_selected, loc_x, loc_y)
                             display.selected_cell_reset()
                             display.reset_display()
+                            pygame.time.set_timer(1, TIME_FOR_HINT)
                     elif loc_x == -1 or loc_y == -1:
                         pass  # invalid selection
                     else:
