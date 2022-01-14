@@ -89,6 +89,7 @@ class Images:
         image_path = importlib.resources.open_binary(img, "background.jpeg")
         self.bg = pygame.image.load(image_path)
         self.gem_images = []
+        self.gem_flash = None
         self._load_gem_images()
 
     def background(self):
@@ -113,6 +114,7 @@ class Images:
         path13 = importlib.resources.open_binary(img, "gem13.png")
         path14 = importlib.resources.open_binary(img, "gem14.png")
         path15 = importlib.resources.open_binary(img, "gem15.png")
+        path16 = importlib.resources.open_binary(img, "gem_flash2.png")
 
         gem1 = pygame.image.load(path1)
         gem2 = pygame.image.load(path2)
@@ -129,6 +131,7 @@ class Images:
         gem13 = pygame.image.load(path13)
         gem14 = pygame.image.load(path14)
         gem15 = pygame.image.load(path15)
+        self.gem_flash = pygame.image.load(path16)
 
         self.gem_images = [gem1, gem2, gem3, gem4, gem5, gem6, gem7, gem8,
                            gem9, gem10, gem11, gem12, gem13, gem14, gem15]
@@ -401,6 +404,16 @@ class Display:
         text = f"Score: {self.game_score.get_score()}"
         score_text = self.font_44.render(text, True, WHITE)
         self.win.blit(score_text, (5, 610))
+        pygame.display.update()
+
+    def display_gem_remove_flash(self):
+        gb = self.game_board.get_game_board()
+        for y in range(8):
+            for x in range(8):
+                if gb[y][x] == 0:
+                    row = get_grid(y)
+                    col = get_grid(x)
+                    self.win.blit(self.images.gem_flash, (col, row))
         pygame.display.update()
 
     def reset_display(self):
@@ -758,13 +771,18 @@ def main_game(win: pygame.Surface) -> None:
                             display.selected_cell_reset()
                             first_selected = (-1, -1)
                             while game_board.remove_matches():
+                                display.display_gem_remove_flash()
+                                sleep(0.1)
                                 display.fill_in_game_board()
                                 sleep(0.1)
                             if game_level.moved_to_new_level():
                                 game_board.remove_random_gems()
+                                display.display_gem_remove_flash()
                                 sleep(0.2)
                                 display.fill_in_game_board()
                                 while game_board.remove_matches():
+                                    display.display_gem_remove_flash()
+                                    sleep(0.1)
                                     display.fill_in_game_board()
                                     sleep(0.1)
                             for event2 in pygame.event.get():
