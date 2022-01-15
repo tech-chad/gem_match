@@ -1,14 +1,13 @@
 # gem match
+import os
 import random
 from time import sleep
-
-import importlib.resources
-import images as img
 
 from typing import Tuple
 
 import pygame
 
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 650
@@ -86,8 +85,7 @@ class Levels:
 
 class Images:
     def __init__(self):
-        image_path = importlib.resources.open_binary(img, "background.jpeg")
-        self.bg = pygame.image.load(image_path)
+        self.bg = pygame.image.load(os.path.join(HERE, "images/background.jpeg"))
         self.gem_images = []
         self.gem_flash = None
         self._load_gem_images()
@@ -99,39 +97,22 @@ class Images:
         return self.gem_images[gem_number - 1]
 
     def _load_gem_images(self):
-        path1 = importlib.resources.open_binary(img, "gem1.png")
-        path2 = importlib.resources.open_binary(img, "gem2.png")
-        path3 = importlib.resources.open_binary(img, "gem3.png")
-        path4 = importlib.resources.open_binary(img, "gem4.png")
-        path5 = importlib.resources.open_binary(img, "gem5.png")
-        path6 = importlib.resources.open_binary(img, "gem6.png")
-        path7 = importlib.resources.open_binary(img, "gem7.png")
-        path8 = importlib.resources.open_binary(img, "gem8.png")
-        path9 = importlib.resources.open_binary(img, "gem9.png")
-        path10 = importlib.resources.open_binary(img, "gem10.png")
-        path11 = importlib.resources.open_binary(img, "gem11.png")
-        path12 = importlib.resources.open_binary(img, "gem12.png")
-        path13 = importlib.resources.open_binary(img, "gem13.png")
-        path14 = importlib.resources.open_binary(img, "gem14.png")
-        path15 = importlib.resources.open_binary(img, "gem15.png")
-        path16 = importlib.resources.open_binary(img, "gem_flash2.png")
-
-        gem1 = pygame.image.load(path1)
-        gem2 = pygame.image.load(path2)
-        gem3 = pygame.image.load(path3)
-        gem4 = pygame.image.load(path4)
-        gem5 = pygame.image.load(path5)
-        gem6 = pygame.image.load(path6)
-        gem7 = pygame.image.load(path7)
-        gem8 = pygame.image.load(path8)
-        gem9 = pygame.image.load(path9)
-        gem10 = pygame.image.load(path10)
-        gem11 = pygame.image.load(path11)
-        gem12 = pygame.image.load(path12)
-        gem13 = pygame.image.load(path13)
-        gem14 = pygame.image.load(path14)
-        gem15 = pygame.image.load(path15)
-        self.gem_flash = pygame.image.load(path16)
+        gem1 = pygame.image.load(os.path.join(HERE, "images/gem1.png"))
+        gem2 = pygame.image.load(os.path.join(HERE, "images/gem2.png"))
+        gem3 = pygame.image.load(os.path.join(HERE, "images/gem3.png"))
+        gem4 = pygame.image.load(os.path.join(HERE, "images/gem4.png"))
+        gem5 = pygame.image.load(os.path.join(HERE, "images/gem5.png"))
+        gem6 = pygame.image.load(os.path.join(HERE, "images/gem6.png"))
+        gem7 = pygame.image.load(os.path.join(HERE, "images/gem7.png"))
+        gem8 = pygame.image.load(os.path.join(HERE, "images/gem8.png"))
+        gem9 = pygame.image.load(os.path.join(HERE, "images/gem9.png"))
+        gem10 = pygame.image.load(os.path.join(HERE, "images/gem10.png"))
+        gem11 = pygame.image.load(os.path.join(HERE, "images/gem11.png"))
+        gem12 = pygame.image.load(os.path.join(HERE, "images/gem12.png"))
+        gem13 = pygame.image.load(os.path.join(HERE, "images/gem13.png"))
+        gem14 = pygame.image.load(os.path.join(HERE, "images/gem14.png"))
+        gem15 = pygame.image.load(os.path.join(HERE, "images/gem15.png"))
+        self.gem_flash = pygame.image.load(os.path.join(HERE, "images/gem_flash2.png"))
 
         self.gem_images = [gem1, gem2, gem3, gem4, gem5, gem6, gem7, gem8,
                            gem9, gem10, gem11, gem12, gem13, gem14, gem15]
