@@ -9,6 +9,12 @@ pygame 2.1 +
 python 3.7 +
 
 ### To Play:
+Option 1
+- Download the wheel or tar.gz file from Github
+- Install in a virtualenv by using pip
+- To play gem_match
+
+Option 2
 - clone repository
 - cd into gem_match
 - make and activate virtualvenv (python3.7 +)
