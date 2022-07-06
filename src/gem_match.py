@@ -748,24 +748,24 @@ def main_game(win: pygame.Surface) -> None:
                         if game_board.check_if_valid_flip(*first_selected, loc_x, loc_y):
                             game_board.flip_cells(*first_selected, loc_x, loc_y)
                             display.reset_display()
-                            sleep(0.3)
+                            sleep(0.07)
                             display.selected_cell_reset()
                             first_selected = (-1, -1)
                             while game_board.remove_matches():
                                 display.display_gem_remove_flash()
-                                sleep(0.1)
+                                sleep(0.07)
                                 display.fill_in_game_board()
-                                sleep(0.1)
+                                sleep(0.07)
                             if game_level.moved_to_new_level():
                                 game_board.remove_random_gems()
                                 display.display_gem_remove_flash()
-                                sleep(0.2)
+                                sleep(0.07)
                                 display.fill_in_game_board()
                                 while game_board.remove_matches():
                                     display.display_gem_remove_flash()
-                                    sleep(0.1)
+                                    sleep(0.07)
                                     display.fill_in_game_board()
-                                    sleep(0.1)
+                                    sleep(0.07)
                             for event2 in pygame.event.get():
                                 if event2.type == pygame.MOUSEBUTTONDOWN:
                                     pass
