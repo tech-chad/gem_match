@@ -3,6 +3,7 @@ import os
 import random
 from time import sleep
 
+from typing import List
 from typing import Tuple
 
 import pygame
@@ -18,8 +19,12 @@ SELECTED_CELL_COLOR = (255, 200, 20)
 HINT_CELL_COLOR = (0, 255, 90)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
+TEAL = (0, 155, 230)
 DARK_GRAY = (100, 100, 100)
+GOLD = (255, 215, 0)
 TIME_FOR_HINT = 10000
+HIGH_SCORE_FILE = "high_scores.txt"
+EXCEPTABLE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_"
 
 
 class Score:
@@ -365,6 +370,7 @@ class Display:
         self.game_board = game_board
         self.game_level = game_level
         self.font_70 = pygame.font.SysFont("comicsans", 70, bold=True)
+        self.font_46 = pygame.font.SysFont("comicsans", 46, bold=True)
         self.font_44 = pygame.font.SysFont("comicsans", 44)
         self.font_24 = pygame.font.SysFont("comicsans", 24)
         self.images = Images()
@@ -567,6 +573,54 @@ class Display:
         self.win.blit(text1, (22, 200))
         pygame.display.update()
 
+    def show_new_high_score(self):
+        text3 = self.font_46.render("CONGRATS you got a high score", True, GOLD)
+        self.win.blit(text3, (SCREEN_WIDTH//2 - text3.get_width()//2, 280))
+        pygame.display.update()
+
+
+class HighScores:
+    def __init__(self):
+        self.normal_scores = []
+        self.no_high_scores = False
+        self._load_scores()
+
+    def get_high_scores(self) -> List[Tuple[str, int]]:
+        return self.normal_scores
+
+    def check_if_high_score(self, score: int) -> bool:
+        if score == 0:
+            return False
+        for rank, item in enumerate(self.normal_scores):
+            h_name, h_score = item
+            if score >= int(h_score):
+                return True
+        return False
+
+    def insert_score(self, score: int, name: str) -> None:
+        for rank, item in enumerate(self.normal_scores):
+            h_name, h_score = item
+            if score >= int(h_score):
+                self.normal_scores.insert(rank, (name, score))
+                self.normal_scores.pop()
+                break
+        self._save_scores()
+
+    def _load_scores(self) -> None:
+        with open(os.path.join(HERE, HIGH_SCORE_FILE), "r") as f:
+            data = f.read()
+        for line in data.splitlines():
+            name, score = line.split(":")
+            self.normal_scores.append((name, score))
+
+    def _save_scores(self) -> None:
+        try:
+            with open(os.path.join(HERE, HIGH_SCORE_FILE), "w") as f:
+                for line in self.normal_scores:
+                    f.write(f"{line[0]}:{line[1]}\n")
+        except PermissionError:
+            pass
+
 
 def get_grid(a: int) -> int:
     if a == 0:
@@ -710,7 +764,7 @@ def play_again():
                     return False
 
 
-def main_game(win: pygame.Surface) -> None:
+def main_game(win: pygame.Surface, high_scores) -> None:
     game_level = Levels()
     game_score = Score(game_level)
     game_board = GameBoard(1, game_score, game_level)
@@ -776,14 +830,30 @@ def main_game(win: pygame.Surface) -> None:
                             game_score.reset_bonus()
                             if not game_board.are_there_valid_moves():
                                 display.show_game_over()
-                                sleep(0.3)
-                                if play_again():
-                                    game_level.reset_level()
-                                    game_board.reset_game_board()
-                                    game_score.reset_score()
-                                    display.display_full_fill_2()
+                                sleep(2.3)
+                                score = game_score.get_score()
+                                if high_scores.check_if_high_score(score):
+                                    display.show_new_high_score()
+                                    sleep(3.2)
+                                    new_high_score(high_scores, score)
+                                    display.reset_display()
+                                    display.show_game_over()
+                                    if play_again():
+                                        game_level.reset_level()
+                                        game_board.reset_game_board()
+                                        game_score.reset_score()
+                                        display.display_full_fill_2()
+                                    else:
+                                        play = False
                                 else:
-                                    play = False
+                                    sleep(0.3)
+                                    if play_again():
+                                        game_level.reset_level()
+                                        game_board.reset_game_board()
+                                        game_score.reset_score()
+                                        display.display_full_fill_2()
+                                    else:
+                                        play = False
                             pygame.time.set_timer(1, TIME_FOR_HINT)
                         else:
                             game_board.flip_cells(*first_selected, loc_x, loc_y)
@@ -818,12 +888,162 @@ def welcome_screen(win: pygame.Surface) -> bool:
                 return True
 
 
+def main_menu_window() -> str:
+    win = pygame.display.get_surface()
+    font_50 = pygame.font.SysFont("comicsans", 60)
+    font_30 = pygame.font.SysFont("comicsans", 30, False)
+    main_menu_text = font_50.render("Main Menu", True, LIGHT_PURPLE)
+    main_menu_text_width = main_menu_text.get_width()
+
+    normal_game_text = font_30.render("Normal Game", True, WHITE)
+    normal_game_text_width = normal_game_text.get_width()
+    normal_game_box_size = (SCREEN_WIDTH//2 - normal_game_text_width//2,
+                            140,
+                            normal_game_text_width + 20,
+                            40)
+
+    high_score_text = font_30.render("HIGH SCORES", True, TEAL)
+    high_score_text_width = high_score_text.get_width()
+    high_score_box_size = (SCREEN_WIDTH//2 - high_score_text_width//2 - 10,
+                           290,
+                           high_score_text_width + 20,
+                           40)
+
+    win.fill(color=BG_COLOR)
+    win.blit(main_menu_text, (SCREEN_WIDTH//2 - main_menu_text_width//2, 50))
+    win.blit(normal_game_text, (SCREEN_WIDTH//2 - normal_game_text_width//2, 150))
+    win.blit(high_score_text, (SCREEN_WIDTH//2 - high_score_text_width//2, 300))
+    high_score_box = pygame.rect.Rect(high_score_box_size)
+    normal_game_box = pygame.rect.Rect(normal_game_box_size)
+    pygame.display.update()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return "quit"
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if high_score_box.collidepoint(mouse_x, mouse_y):
+                    return "high score"
+                elif normal_game_box.collidepoint(mouse_x, mouse_y):
+                    return "normal game"
+
+
+def high_score_window(high_scores) -> None:
+    win = pygame.display.get_surface()
+    font_50 = pygame.font.SysFont("comicsans", 50)
+    font_30 = pygame.font.SysFont("comicsans", 30, False)
+    font_26 = pygame.font.SysFont("comicsans", 26, False)
+    high_score_text = font_50.render("HIGH SCORES", True, LIGHT_PURPLE)
+    high_score_text_width = high_score_text.get_width()
+
+    return_text = font_30.render("Return to Main Menu", True, WHITE)
+    return_text_width = return_text.get_width()
+    return_text_box_size = (SCREEN_WIDTH//2 - return_text_width//2 - 10,
+                            500,
+                            return_text_width + 20,
+                            40)
+
+    win.fill(color=BG_COLOR)
+    for i, line in enumerate(high_scores.get_high_scores()):
+        name_text = font_26.render(f"{line[0]}", True, WHITE)
+        score_text = font_26.render(f"{line[1]}", True, WHITE)
+        win.blit(name_text, (180, 100 + i * 30))
+        win.blit(score_text,  (390, 100 + i * 30))
+    win.blit(high_score_text, (SCREEN_WIDTH//2 - high_score_text_width//2, 35))
+    win.blit(return_text, (SCREEN_WIDTH//2 - return_text_width//2, 500))
+    return_box = pygame.rect.Rect(return_text_box_size)
+    pygame.display.update()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if return_box.collidepoint(mouse_x, mouse_y):
+                    return None
+
+
+def new_high_score(high_score, new_score: int) -> None:
+    win = pygame.display.get_surface()
+    font_50 = pygame.font.SysFont("comicsans", 50)
+    font_30 = pygame.font.SysFont("comicsans", 30, False)
+    font_26 = pygame.font.SysFont("comicsans", 26, False)
+    high_score_text = font_50.render("NEW HIGH SCORE", True, LIGHT_PURPLE)
+    high_score_text_width = high_score_text.get_width()
+    enter_name_text = font_30.render("Enter name:", True, WHITE)
+
+    button_done = pygame.rect.Rect((SCREEN_WIDTH//2 - 50, 280, 100, 50))
+    done_text = font_26.render("Done", True, WHITE)
+
+    win.fill(color=BG_COLOR)
+    win.blit(high_score_text, (SCREEN_WIDTH//2 - high_score_text_width//2, 35))
+    win.blit(enter_name_text, (100, 150))
+    done = pygame.draw.rect(win, DARK_GRAY, button_done, border_radius=1)
+    win.blit(
+        done_text,
+        (done.x + done.width//2 - done_text.get_width()//2,
+         done.y + done.height//2 - done_text.get_height()//2)
+    )
+    pygame.draw.rect(win, BLACK,
+                     (enter_name_text.get_width() + 105, 142, 190, 31))
+    pygame.key.start_text_input()
+    pygame.display.update()
+    name_string = ""
+    typing_name = True
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if done.collidepoint(mouse_x, mouse_y):
+                    pygame.key.stop_text_input()
+                    typing_name = False
+            elif event.type == pygame.TEXTINPUT:
+                if event.text not in EXCEPTABLE_CHARACTERS:
+                    continue
+                name_string += event.text
+                name_text = font_30.render(name_string, True, WHITE)
+                pygame.draw.rect(
+                    win,
+                    BLACK,
+                    (enter_name_text.get_width() + 105, 142, 190, 31)
+                )
+                win.blit(name_text, (enter_name_text.get_width() + 110, 150))
+                pygame.display.update()
+                if len(name_string) >= 12:
+                    pygame.key.stop_text_input()
+            elif event.type == pygame.KEYDOWN:
+                if pygame.key.get_pressed()[pygame.K_RETURN]:
+                    pygame.key.stop_text_input()
+                    typing_name = False
+                elif pygame.key.get_pressed()[pygame.K_BACKSPACE]:
+                    pygame.key.start_text_input()
+                    name_string = name_string[:-1]
+                    name_text = font_30.render(name_string, True, WHITE)
+                    pygame.draw.rect(
+                        win,
+                        BLACK,
+                        (enter_name_text.get_width() + 105, 142, 190, 31)
+                    )
+                    win.blit(name_text,
+                             (enter_name_text.get_width() + 110, 150))
+                    pygame.display.update()
+        if not typing_name:
+            high_score.insert_score(new_score, name_string)
+            break
+
+
 def main() -> None:
     pygame.init()
     win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Gem Match")
+    high_scores = HighScores()
     if welcome_screen(win):
-        main_game(win)
+        while True:
+            choice = main_menu_window()
+            if choice == "normal game":
+                main_game(win, high_scores)
+            elif choice == "high score":
+                high_score_window(high_scores)
+            elif choice == "quit":
+                break
 
 
 if __name__ == "__main__":
