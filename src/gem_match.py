@@ -1,9 +1,12 @@
 # gem match
+import argparse
 import os
 import random
 from time import sleep
 
 from typing import List
+from typing import Optional
+from typing import Sequence
 from typing import Tuple
 
 import pygame
@@ -764,7 +767,7 @@ def play_again():
                     return False
 
 
-def main_game(win: pygame.Surface, high_scores) -> None:
+def main_game(win: pygame.Surface, high_scores, args: argparse.Namespace) -> None:
     game_level = Levels()
     game_score = Score(game_level)
     game_board = GameBoard(1, game_score, game_level)
@@ -779,7 +782,7 @@ def main_game(win: pygame.Surface, high_scores) -> None:
             if event.type == pygame.QUIT:
                 if quit_confirm():
                     play = False
-            if event.type == 1:
+            if event.type == 1 and not args.no_hints:
                 display.display_hint = True
                 display.hint = game_board.get_hint()
             keys = pygame.key.get_pressed()
@@ -1030,7 +1033,15 @@ def new_high_score(high_score, new_score: int) -> None:
             break
 
 
+def argument_parser(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--no_hints", action="store_true",
+                        help="Disable hints")
+    return parser.parse_args(argv)
+
+
 def main() -> None:
+    args = argument_parser()
     pygame.init()
     win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Gem Match")
@@ -1039,7 +1050,7 @@ def main() -> None:
         while True:
             choice = main_menu_window()
             if choice == "normal game":
-                main_game(win, high_scores)
+                main_game(win, high_scores, args)
             elif choice == "high score":
                 high_score_window(high_scores)
             elif choice == "quit":
