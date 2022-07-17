@@ -583,9 +583,10 @@ class Display:
 
 
 class HighScores:
-    def __init__(self):
+    def __init__(self, no_save: bool):
         self.normal_scores = []
         self.no_high_scores = False
+        self.do_not_save_highscores = no_save
         self._load_scores()
 
     def get_high_scores(self) -> List[Tuple[str, int]]:
@@ -617,6 +618,8 @@ class HighScores:
             self.normal_scores.append((name, score))
 
     def _save_scores(self) -> None:
+        if self.do_not_save_highscores:
+            return None
         try:
             with open(os.path.join(HERE, HIGH_SCORE_FILE), "w") as f:
                 for line in self.normal_scores:
@@ -1055,6 +1058,8 @@ def argument_parser(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no_hints", action="store_true",
                         help="Disable hints")
+    parser.add_argument("--do_not_save_scores", action="store_true",
+                        help=argparse.SUPPRESS)  # used for testing
     return parser.parse_args(argv)
 
 
@@ -1063,7 +1068,7 @@ def main() -> None:
     pygame.init()
     win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Gem Match")
-    high_scores = HighScores()
+    high_scores = HighScores(no_save=args.do_not_save_scores)
     if welcome_screen(win):
         while True:
             choice = main_menu_window()
