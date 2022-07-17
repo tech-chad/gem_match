@@ -767,7 +767,10 @@ def play_again():
                     return False
 
 
-def main_game(win: pygame.Surface, high_scores, args: argparse.Namespace) -> None:
+def main_game(win: pygame.Surface,
+              high_scores,
+              args: argparse.Namespace,
+              unlimited_game: bool) -> None:
     game_level = Levels()
     game_score = Score(game_level)
     game_board = GameBoard(1, game_score, game_level)
@@ -832,6 +835,10 @@ def main_game(win: pygame.Surface, high_scores, args: argparse.Namespace) -> Non
                                     pass
                             game_score.reset_bonus()
                             if not game_board.are_there_valid_moves():
+                                if unlimited_game:
+                                    game_board.reset_game_board()
+                                    display.display_full_fill_2()
+                                    continue
                                 display.show_game_over()
                                 sleep(2.3)
                                 score = game_score.get_score()
@@ -905,6 +912,13 @@ def main_menu_window() -> str:
                             normal_game_text_width + 20,
                             40)
 
+    unlimited_game_text = font_30.render("Unlimited Game", True, WHITE)
+    unlimited_game_text_width = unlimited_game_text.get_width()
+    unlimited_game_box_size = (SCREEN_WIDTH//2 - unlimited_game_text_width//2,
+                               190,
+                               unlimited_game_text_width + 20,
+                               40)
+
     high_score_text = font_30.render("HIGH SCORES", True, TEAL)
     high_score_text_width = high_score_text.get_width()
     high_score_box_size = (SCREEN_WIDTH//2 - high_score_text_width//2 - 10,
@@ -915,9 +929,11 @@ def main_menu_window() -> str:
     win.fill(color=BG_COLOR)
     win.blit(main_menu_text, (SCREEN_WIDTH//2 - main_menu_text_width//2, 50))
     win.blit(normal_game_text, (SCREEN_WIDTH//2 - normal_game_text_width//2, 150))
+    win.blit(unlimited_game_text, (SCREEN_WIDTH//2 - unlimited_game_text_width//2, 200))
     win.blit(high_score_text, (SCREEN_WIDTH//2 - high_score_text_width//2, 300))
     high_score_box = pygame.rect.Rect(high_score_box_size)
     normal_game_box = pygame.rect.Rect(normal_game_box_size)
+    unlimited_game_box = pygame.rect.Rect(unlimited_game_box_size)
     pygame.display.update()
     while True:
         for event in pygame.event.get():
@@ -929,6 +945,8 @@ def main_menu_window() -> str:
                     return "high score"
                 elif normal_game_box.collidepoint(mouse_x, mouse_y):
                     return "normal game"
+                elif unlimited_game_box.collidepoint(mouse_x, mouse_y):
+                    return "unlimited game"
 
 
 def high_score_window(high_scores) -> None:
@@ -1050,7 +1068,9 @@ def main() -> None:
         while True:
             choice = main_menu_window()
             if choice == "normal game":
-                main_game(win, high_scores, args)
+                main_game(win, high_scores, args, unlimited_game=False)
+            elif choice == "unlimited game":
+                main_game(win, high_scores, args, unlimited_game=True)
             elif choice == "high score":
                 high_score_window(high_scores)
             elif choice == "quit":
