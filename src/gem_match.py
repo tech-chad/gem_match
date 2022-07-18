@@ -39,8 +39,9 @@ class Score:
 
     def add_score(self):
         # True if level up else False
-        self.score += 10 + self.bonus * 5 + self.game_level.point_modifier
-        self.level_score += 10 + self.bonus * 5
+        score = 10 + self.bonus * 5 + self.game_level.point_modifier
+        self.score += score
+        self.level_score += score
         self.bonus += 1
         if self.level_score >= self.game_level.score_next_level:
             self.game_level.increase_level()
@@ -74,7 +75,7 @@ class Levels:
         if self.level % 2 != 0 and self.number_of_gems < self.max_number_of_gems:
             self.number_of_gems += 1
         self.point_modifier += 10
-        self.score_next_level *= self.level
+        self.score_next_level *= 2
         self.num_gems_remove += 1
         self.new_level = True
 
