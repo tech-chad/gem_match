@@ -21,6 +21,13 @@ Option 2
 - pip install -r requirements.txt
 - python3 src/gem_match.py
 
+### Features
+- Normal Game Mode - Play until no more valid moves.
+- Unlimited Game Mode - Play until you quit. Score will not be saved.
+- High Score saving
+- Hints - After about 10 seconds you will be given a hint
+- Command line option ```--no_hints``` to disable hints
+
 ### How to Play:
 - select a gem
 - select an adjacent gem that if swapped will make 3 in a row.
